@@ -21,7 +21,7 @@ const createSession = async (res, userId) => {
         httpOnly: true,
         signed: true,
         secure: true,
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: expiryTime,
     });
 };
