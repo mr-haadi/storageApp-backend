@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env app.js",
+    "build": "npm install",
+    "start": "node app.js",
     "dev": "node --watch --env-file=.env app.js",
     "setup": "node --env-file=.env ./config/setup.js"
   },
