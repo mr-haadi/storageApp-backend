@@ -177,20 +177,27 @@ export const cancelSubscription = async (req, res, next) => {
 
 
     if (sub.status === "created") {
+      // Cancel immidiately
       await rzp.subscriptions.cancel(subscriptionId, true);
-
-      return res.json({
-        message: "Subscription cancelled.",
-      });
+    } else {
+      // Cancel at the end of the current billing cycle.
+      await rzp.subscriptions.cancel(subscriptionId, false);
     }
 
-    // cancel_at_cycle_end=false means Razorpay cancels at end of current billing cycle,
-    // without downgrading).
-    await rzp.subscriptions.cancel(subscriptionId, false);
+    // Immediately update local state so the UI reflects the change.
+    // The webhook will later reconcile any additional fields.
+    await Subscription.updateOne(
+      { subscriptionId, userId: req.user._id },
+      {
+        status: "cancelled",
+      }
+    );
 
     return res.json({
       message:
-        "Subscription cancelled. You will retain premium access until the end of your current billing cycle.",
+        sub.status === "created"
+          ? "Subscription cancelled."
+          : "Subscription cancelled. You will retain premium access until the end of your current billing cycle.",
     });
   } catch (err) {
     next(err);
