@@ -53,12 +53,8 @@ app.use("/webhook", webhookRoutes);
 // Global JSON parser — runs for all routes below this point
 app.use(express.json());
 
-app.use("/", (req, res) => {
+app.use("/test", (req, res) => {
 	return res.json({message: "Hello from storageApp"});
-});
-app.use("/err", (req, res) => {
-	console.log("Error endpoint");
-	process.exit(1);
 });
 
 app.use("/", userRoutes);
