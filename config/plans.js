@@ -25,3 +25,10 @@ export const PLAN_CONFIG = {
     deviceLimit: 4,
   },
 };
+
+export const PLAN_DETAILS = {
+  plan_T7QOKw1SWn3YA9: { name: "Pro", cycle: "monthly", price: 169 },
+  plan_T7QTobe7VSThyp: { name: "Premium", cycle: "monthly", price: 499 },
+  plan_T7QPutFKX9ueS5: { name: "Pro", cycle: "yearly", price: 1599 },
+  plan_T7QV7r2nId24Vo: { name: "Premium", cycle: "yearly", price: 4999 },
+};
