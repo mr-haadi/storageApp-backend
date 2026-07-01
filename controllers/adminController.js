@@ -9,7 +9,7 @@ import { getTargetUser } from "../utils/getTargetUser.js";
 import { isPremiumActive } from "../utils/isPremiumActive.js";
 import { canAssignRole } from "../utils/permissions.js";
 import { roleSchema } from "../validators/authSchema.js";
-import { deleteUserSessions } from "./userController.js";
+import { deleteUserSessions } from "../utils/sessionUtils.js";
 
 const LIVE_SUBSCRIPTION_STATUSES = [
     "created",

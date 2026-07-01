@@ -6,25 +6,10 @@ import { getUserFromAuthCode } from "../services/googleAuthService.js"
 import { sendOtpService } from "../services/sendOtpService.js"
 import redisClient from "../config/redis.js";
 import { sendOtpSchema, verifyOtpSchema } from "../validators/authSchema.js";
+import { enforceDeviceLimit, createSession } from "../utils/sessionUtils.js";
 
 
 const expiryTime = 1000 * 60 * 60 * 24 * 7;
-
-const createSession = async (res, userId) => {
-    const sessionId = crypto.randomUUID();
-    const redisKey = `session:${sessionId}`;
-
-    await redisClient.json.set(redisKey, "$", { userId });
-    await redisClient.expire(redisKey, expiryTime / 1000);
-
-    res.cookie("sid", sessionId, {
-        httpOnly: true,
-        signed: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: expiryTime,
-    });
-};
 
 
 export const sendOtp = async (req, res) => {
@@ -56,9 +41,9 @@ export const verifyOtp = async (req, res) => {
 
 export const loginWithGoogle = async (req, res, next) => {
     const transactionSession = await mongoose.startSession();
+    let txnStarted = false;
 
     try {
-        // ── Auth-code flow: receive `code` from frontend ──────────────────
         const { code } = req.body;
         if (!code) {
             return res.status(400).json({ error: "Authorization code is required" });
@@ -73,12 +58,7 @@ export const loginWithGoogle = async (req, res, next) => {
             if (user.isDeleted) {
                 return res.status(403).json({ error: "Your account is disabled! Contact Admin to recover." })
             }
-            const allSessions = await redisClient.ft.search("userIdIdx", `@userId:{${user.id}}`, {
-                RETURN: []
-            })
-            if (allSessions.total >= user.accessDevice) {
-                await redisClient.del(allSessions.documents[0].id)
-            }
+            await enforceDeviceLimit(user.id, user.accessDevice);
 
             if (!user.picture.includes("googleusercontent.com")) {
                 user.picture = picture
@@ -92,6 +72,7 @@ export const loginWithGoogle = async (req, res, next) => {
         const rootDirId = new Types.ObjectId();
         const userId = new Types.ObjectId();
 
+        txnStarted = true;
         transactionSession.startTransaction();
         await Directory.insertOne(
             {
@@ -117,7 +98,9 @@ export const loginWithGoogle = async (req, res, next) => {
         await createSession(res, userId)
         return res.status(201).json({ message: "User Registered with Google & Logged In" });
     } catch (err) {
-        await transactionSession.abortTransaction();
+        if(txnStarted) {
+            await transactionSession.abortTransaction();
+        }
         next(err);
     } finally {
         await transactionSession.endSession();

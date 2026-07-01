@@ -33,6 +33,9 @@ const directorySchema = new Schema(
   },
 );
 
+directorySchema.index({ userId: 1 });
+directorySchema.index({ parentDirId: 1 });
+
 const Directory = model("Directory", directorySchema);
 
 export default Directory;

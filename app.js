@@ -66,6 +66,9 @@ app.use("/admin", checkAuth, adminRoutes);
 
 app.use((err, req, res, next) => {
   console.dir(err, { depth: null });
+   if (res.headersSent) {
+    return next(err);
+  }
   return res.status(err.status || 500).json({ error: "Something went wrong! try again later." });
 });
 

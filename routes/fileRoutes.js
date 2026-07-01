@@ -24,7 +24,7 @@ router.post("/:upload/initiate", rateLimiter(60 * 1000, 20), throttle({
 }), uploadInitiate)
 router.post("/:upload/complete", rateLimiter(60 * 1000, 100), uploadComplete)
 router.post("/:upload/cancel", rateLimiter(60 * 1000, 50), uploadCancel)
-router.patch("/:id", renameFile);
+router.patch("/:id",sanitizeInputs(["newFilename"]), renameFile);
 router.delete("/:id", deleteFile);
 
 export default router;

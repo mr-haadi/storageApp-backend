@@ -7,6 +7,8 @@ import Directory from "../models/directoryModel.js";
 import { deleteR2Files } from "../services/cloudflareR2Service.js";
 import { changePasswordSchema, loginSchema, registerSchema } from "../validators/authSchema.js";
 import { updateDirectorySize } from "./fileController.js";
+import { createSession, deleteUserSessions, enforceDeviceLimit } from "../utils/sessionUtils.js";
+import { getDirectoryContent } from "../utils/directoryTree.js";
 
 export const register = async (req, res, next) => {
   const { success, data } = registerSchema.safeParse(req.body)
@@ -53,11 +55,9 @@ export const register = async (req, res, next) => {
         .status(400)
         .json({ error: "Invalid Input! please enter valid details" });
     } else if (err.code === 11000) {
-      if (err.keyValue.email) {
-        return res
-          .status(409)
-          .json({ error: "User already exists!, Login Now" });
-      }
+      return res
+        .status(409)
+        .json({ error: "User already exists!, Login Now" });
     } else {
       next(err);
     }
@@ -75,7 +75,7 @@ export const login = async (req, res) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(404).json({ error: "Invalid Credentials!" });
+    return res.status(404).json({ error: "Invalid email or password!" });
   } else if (user.isDeleted) {
     return res.status(403).json({ error: "Your account is disabled! Contact Admin to recover." })
   } else if (!user.password) {
@@ -85,31 +85,16 @@ export const login = async (req, res) => {
   }
   const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
-    return res.status(404).json({ error: "Invalid Credentials!!" });
+    return res.status(404).json({ error: "Invalid email or password!" });
   }
-  const allSessions = await redisClient.ft.search("userIdIdx", `@userId:{${user.id}}`, {
-    RETURN: []
-  })
-  if (allSessions.total >= user.accessDevice) {
-    await redisClient.del(allSessions.documents[0].id)
-  }
-  const sessionId = crypto.randomUUID()
-  const redisKey = `session:${sessionId}`
-  await redisClient.json.set(redisKey, "$", { userId: user._id })
-  const expiryTime = 60 * 1000 * 60 * 24 * 7
-  await redisClient.expire(redisKey, expiryTime / 1000)
-  res.cookie("sid", sessionId, {
-    httpOnly: true,
-    signed: true,
-    secure: true,
-    sameSite: "none",
-    maxAge: expiryTime,
-  });
-  return res.status(200).json({ message: "Login Successful!" });
+
+  await enforceDeviceLimit(user.id, user.accessDevice);
+  await createSession(res, user._id);
+
+  return res.status(200).json({ message: "Login Successful" });
 };
 
 export const currentLoggedUser = async (req, res) => {
-
   return res.status(200).json({
     id: req.user._id,
     name: req.user.name,
@@ -240,41 +225,16 @@ export const bulkDeleteItems = async (req, res) => {
       }),
     ]);
 
-    for (const file of files) {
-      await updateDirectorySize(
-        file.parentDirId,
-        -file.size,
-        user.rootDirId
-      );
-    }
+    await Promise.all(
+      files.map((file) =>
+        updateDirectorySize(file.parentDirId, -file.size, user.rootDirId)
+      )
+    );
 
     deletedCount += files.length;
   }
 
   // ---------- DIRECTORIES ----------
-  async function getDirectoryContent(id) {
-    let files = await File.find({
-      parentDirId: id,
-    })
-      .select("_id extension")
-      .lean();
-
-    let directories = await Directory.find({
-      parentDirId: id,
-    })
-      .select("_id")
-      .lean();
-
-    for (const { _id } of directories) {
-      const child = await getDirectoryContent(_id);
-
-      files.push(...child.files);
-      directories.push(...child.directories);
-    }
-
-    return { files, directories };
-  }
-
   for (const dirId of directoryIds) {
     const directoryData = await Directory.findOne({
       _id: dirId,
@@ -322,20 +282,4 @@ export const bulkDeleteItems = async (req, res) => {
   return res.json({
     message: `${deletedCount} item(s) deleted`,
   });
-};
-
-export const deleteUserSessions = async (userId) => {
-  const allSessions = await redisClient.ft.search(
-    "userIdIdx",
-    `@userId:{${userId}}`,
-    {
-      RETURN: [],
-    }
-  );
-  const sessionKeys = allSessions.documents.map(
-    (doc) => doc.id
-  );
-  if (sessionKeys.length > 0) {
-    await redisClient.del(...sessionKeys);
-  }
 };

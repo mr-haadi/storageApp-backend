@@ -3,6 +3,7 @@ import Directory from "../models/directoryModel.js";
 import { updateDirectorySize } from "./fileController.js";
 import { deleteR2Files } from "../services/cloudflareR2Service.js";
 import { directoryNameSchema, renameDirectorySchema } from "../validators/directorySchema.js";
+import { getDirectoryContent } from "../utils/directoryTree.js";
 
 export const readDirectory = async (req, res) => {
   const user = req.user;
@@ -126,23 +127,7 @@ export const deleteDirectory = async (req, res) => {
     });
   }
 
-  async function getDirectoryContent(id) {
-    let files = await File.find({ parentDirId: id }).select("_id extension").lean();
-    let directories = await Directory.find({ parentDirId: id })
-      .select("_id")
-      .lean();
-
-    for await (const { _id } of directories) {
-      const { files: childFiles, directories: childDirectories } =
-        await getDirectoryContent(_id);
-      files = [...files, ...childFiles];
-      directories = [...directories, ...childDirectories];
-    }
-    return { files, directories };
-  }
-
-  const data = await getDirectoryContent(directoryData._id);
-  const { files, directories } = data;
+  const { files, directories } = await getDirectoryContent(directoryData._id);
 
   const keys = files.map(({ _id, extension }) => ({ Key: `${_id}${extension}` }))
   if (keys.length) {
