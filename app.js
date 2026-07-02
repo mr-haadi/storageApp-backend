@@ -40,10 +40,13 @@ setTimeout(async () => {
 
 const app = express();
 app.use(helmet());
+
+const allowedOrigins = process.env.CLIENT_URLS.split(",").map(url => url.trim());
+
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
   }),
 );

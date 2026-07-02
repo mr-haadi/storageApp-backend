@@ -14,7 +14,7 @@ export async function createSession(res, userId) {
     httpOnly: true,
     signed: true,
     secure: true,
-    sameSite: "none",
+    sameSite: process.env.COOKIE_SAMESITE,
     maxAge: SESSION_TTL_SECONDS * 1000,
   });
 }
