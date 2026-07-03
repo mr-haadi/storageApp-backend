@@ -1,17 +1,5 @@
 import { model, Schema } from "mongoose";
 
-/**
- * All statuses Razorpay can send, plus our local "expired" alias.
- * "created"       — subscription object created, no payment yet
- * "authenticated" — mandate registered, first charge not yet collected
- * "active"        — billing normally
- * "pending"       — payment failed, Razorpay auto-retrying
- * "halted"        — all retries exhausted (downgrade immediately)
- * "paused"        — paused; retain premium until currentEnd
- * "cancelled"     — cancelled; retain premium until currentEnd
- * "completed"     — all billing cycles done (downgrade immediately)
- * "expired"       — local alias set by the cron / completed event
- */
 export const SUBSCRIPTION_STATUSES = [
   "created",
   "authenticated",
@@ -51,8 +39,6 @@ const subscriptionSchema = new Schema(
       default: "created",
     },
 
-    // Payment method label stored for the billing page
-    // e.g. "upi", "card", "netbanking", "emandate"
     paymentMethod: {
       type: String,
       default: null,

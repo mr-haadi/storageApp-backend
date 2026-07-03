@@ -2,7 +2,7 @@ import File from "../models/fileModel.js";
 import Directory from "../models/directoryModel.js";
 import { updateDirectorySize } from "./fileController.js";
 import { deleteR2Files } from "../services/cloudflareR2Service.js";
-import { directoryNameSchema, renameDirectorySchema } from "../validators/directorySchema.js";
+import { createDirectorySchema, renameDirectorySchema } from "../validators/directorySchema.js";
 import { getDirectoryContent } from "../utils/directoryTree.js";
 
 export const readDirectory = async (req, res) => {
@@ -33,12 +33,12 @@ export const readDirectory = async (req, res) => {
 export const createDirectory = async (req, res) => {
   const user = req.user;
   const parentDirId = req.params.parentDirId || user.rootDirId;
-  const dirname = req.headers.dirname || "New Folder";
-
-  const { success, data, error } = directoryNameSchema.safeParse(dirname)
+  
+  const { success, data, error } = createDirectorySchema.safeParse(req.body)
   if (!success) {
     return res.status(400).json({ error: error.issues[0].message });
   }
+  const dirname = data.dirname || "New Folder";
 
   const parentDir = await Directory.findOne({
     _id: parentDirId,
@@ -57,7 +57,7 @@ export const createDirectory = async (req, res) => {
       : [...parentDir.path, parentDir._id];
 
   const insertedDir = await Directory.create({
-    name: data,
+    name: dirname,
     parentDirId,
     userId: user._id,
     path,
@@ -66,13 +66,14 @@ export const createDirectory = async (req, res) => {
 };
 
 export const getDirectoryPath = async (req, res) => {
-  const { id } = req.params;
-
-  const dir = await Directory.findById(id)
-    .populate("path", "name _id")
+  const { id: _id } = req.params;
+  const dir = await Directory.findOne({
+    _id,
+    userId: req.user._id,
+  }).populate("path", "name _id")
     .select("path name")
     .lean();
-
+    
   if (!dir) {
     return res.status(404).json({ error: "Directory not found" });
   }
@@ -93,7 +94,6 @@ export const renameDirectory = async (req, res) => {
   if (!success) {
     return res.status(400).json({ error: error.issues[0].message });
   }
-  const { newDirName } = data;
 
   const dirData = await Directory.findOne({
     _id: id,
@@ -104,7 +104,7 @@ export const renameDirectory = async (req, res) => {
       error: "Directory not found or access denied!",
     });
   }
-  dirData.name = newDirName;
+  dirData.name = data.newDirName;
   await dirData.save();
 
   res.status(200).json({ message: "Directory Renamed!" });

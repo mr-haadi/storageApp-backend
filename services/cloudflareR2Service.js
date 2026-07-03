@@ -31,7 +31,7 @@ export const createGetSignedUrl = async ({ key, download = false, filename }) =>
     const command = new GetObjectCommand({
         Bucket: bucketName,
         Key: key,
-        ResponseContentDisposition: `${download ? "attachment" : "inline"}; filename=${decodeURIComponent(filename)}`
+        ResponseContentDisposition: `${download ? "attachment" : "inline"}; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`
     })
 
     const url = await getSignedUrl(r2Client, command, {

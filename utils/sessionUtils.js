@@ -1,10 +1,11 @@
 import redisClient from "../config/redis.js";
+import { randomUUID } from "crypto";
 
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 
 export async function createSession(res, userId) {
-  const sessionId = crypto.randomUUID();
+  const sessionId = randomUUID();
   const redisKey = `session:${sessionId}`;
 
   await redisClient.json.set(redisKey, "$", { userId, createdAt: Date.now() });

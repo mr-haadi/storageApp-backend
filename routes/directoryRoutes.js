@@ -1,6 +1,6 @@
 import express from "express";
 import validateIdMiddleware from "../middleWares/validateIdMiddleware.js";
-import { sanitizeHeaders, sanitizeInputs } from "../middleWares/sanitizeMiddleware.js";
+import { sanitizeInputs } from "../middleWares/sanitizeMiddleware.js";
 import {
   createDirectory,
   deleteDirectory,
@@ -16,7 +16,7 @@ router.param("id", validateIdMiddleware);
 
 router.get("/path/:id", getDirectoryPath);
 router.get("/{:id}", readDirectory);
-router.post("/{:parentDirId}", sanitizeHeaders(["dirname"]), createDirectory);
+router.post("/{:parentDirId}", sanitizeInputs(["dirname"]), createDirectory);
 router.patch("/:id", sanitizeInputs(["newDirName"]), renameDirectory);
 router.delete("/:id", deleteDirectory);
 

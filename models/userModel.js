@@ -13,8 +13,10 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
       match: [
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/,
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         "Please enter a valid email.",
       ],
     },
@@ -33,7 +35,7 @@ const userSchema = new Schema(
     },
     isDeleted: {
       type: Boolean,
-      default: "false"
+      default: false
     },
     rootDirId: {
       type: Schema.Types.ObjectId,

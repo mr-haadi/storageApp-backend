@@ -13,11 +13,15 @@ const expiryTime = 1000 * 60 * 60 * 24 * 7;
 
 
 export const sendOtp = async (req, res) => {
-    const { success, data } = sendOtpSchema.safeParse(req.body)
-    if (!success) {
-        return res.status(400).json({ error: "Please type valid email" });
+    const parsed = sendOtpSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        return res.status(400).json({
+            error: parsed.error.issues[0].message,
+        });
     }
-    const { email } = data;
+    const { email } = parsed.data;
+
     const result = await sendOtpService(email)
     if (!result.success) {
         return res.status(400).json({ error: result.error || "Unable to sent Otp!" })
@@ -27,11 +31,15 @@ export const sendOtp = async (req, res) => {
 }
 
 export const verifyOtp = async (req, res) => {
-    const { success, data } = verifyOtpSchema.safeParse(req.body)
-    if (!success) {
-        return res.status(400).json({ error: "Invalid or Expired Otp!" });
+    const parsed = verifyOtpSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        return res.status(400).json({
+            error: parsed.error.issues[0].message,
+        });
     }
-    const { email, otp } = data
+    const { email, otp } = parsed.data;
+    
     const result = await OTP.findOne({ email, otp })
     if (!result) {
         return res.status(400).json({ error: "Invalid or Expired Otp!" })
@@ -98,7 +106,7 @@ export const loginWithGoogle = async (req, res, next) => {
         await createSession(res, userId)
         return res.status(201).json({ message: "User Registered with Google & Logged In" });
     } catch (err) {
-        if(txnStarted) {
+        if (txnStarted) {
             await transactionSession.abortTransaction();
         }
         next(err);

@@ -36,6 +36,8 @@ const fileSchema = new Schema(
 
 fileSchema.index({ userId: 1 });
 fileSchema.index({ parentDirId: 1 });
+fileSchema.index({ isUploading: 1 });
+fileSchema.index({ createdAt: 1 });
 
 const File = model("File", fileSchema);
 

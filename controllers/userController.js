@@ -11,11 +11,13 @@ import { createSession, deleteUserSessions, enforceDeviceLimit } from "../utils/
 import { getDirectoryContent } from "../utils/directoryTree.js";
 
 export const register = async (req, res, next) => {
-  const { success, data } = registerSchema.safeParse(req.body)
-  if (!success) {
-    return res.status(400).json({ error: "Invalid inputs, please enter valid details!" });
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0].message,
+    });
   }
-  const { name, email, password, otp } = data;
+  const { name, email, password, otp } = parsed.data;
 
   const otpRecord = await OTP.findOneAndDelete({ email, otp })
   if (!otpRecord) {
@@ -67,11 +69,13 @@ export const register = async (req, res, next) => {
 };
 
 export const login = async (req, res) => {
-  const { success, data } = loginSchema.safeParse(req.body)
-  if (!success) {
-    return res.status(400).json({ error: "Invalid Credentials!" });
+  const parsed = loginSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: parsed.error.issues[0].message,
+    });
   }
-  const { email, password } = data;
+  const { email, password } = parsed.data;
 
   const user = await User.findOne({ email });
   if (!user) {
@@ -123,13 +127,14 @@ export const logoutAll = async (req, res) => {
 };
 
 export const changePassword = async (req, res) => {
-  const { success, data } = changePasswordSchema.safeParse(req.body);
+  const parsed = changePasswordSchema.safeParse(req.body);
 
-  if (!success) {
+  if (!parsed.success) {
     return res.status(400).json({
-      error: "Invalid inputs.",
+      error: parsed.error.issues[0].message,
     });
-  }
+  };
+  const data = parsed.data;
 
   const user = await User.findById(req.user._id);
 
@@ -137,7 +142,7 @@ export const changePassword = async (req, res) => {
     return res.status(404).json({
       error: "User not found.",
     });
-  }
+  };
 
   const hasPassword = !!user.password;
 
@@ -146,7 +151,7 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({
         error: "Current password is required.",
       });
-    }
+    };
 
     const ok = await user.comparePassword(data.currentPassword);
 
@@ -155,7 +160,7 @@ export const changePassword = async (req, res) => {
         error: "Current password is incorrect.",
       });
     }
-  }
+  };
 
   user.password = data.newPassword;
 
