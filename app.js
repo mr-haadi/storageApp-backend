@@ -56,8 +56,8 @@ app.use("/webhook", webhookRoutes);
 // Global JSON parser — runs for all routes below this point
 app.use(express.json());
 
-app.get("/test", (req, res) => {
-	return res.json({message: "Hello from storageApp"});
+app.get("/", (req, res) => {
+	return res.json({message: "Hello from mirhaadi cloud app, App is working fine in production."});
 });
 
 app.use("/", userRoutes);
