@@ -40,6 +40,7 @@ setTimeout(async () => {
 
 const app = express();
 app.use(helmet());
+app.set("trust proxy", 1);
 
 const allowedOrigins = process.env.CLIENT_URLS.split(",").map(url => url.trim());
 
