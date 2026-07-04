@@ -105,7 +105,7 @@ export const currentLoggedUser = async (req, res) => {
     email: req.user.email,
     picture: req.user.picture,
     role: req.user.role,
-    hasPassword: req.user.password,
+    hasPassword: !!req.user.password,
     createdAt: req.user.createdAt,
     maxStorageInBytes: req.user.maxStorageInBytes,
     usedStorageInBytes: req.user.usedStorageInBytes,
