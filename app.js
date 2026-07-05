@@ -59,7 +59,7 @@ app.use("/webhook", webhookRoutes);
 app.use(express.json());
 
 app.get("/", (req, res) => {
-	return res.json({message: "Hello from mirhaadi cloud app, App is working fine in production.", timeStamp: Date.now().toLocaleString()});
+	return res.json({message: "Hello from mirhaadi cloud app, App is working fine in production.", timeStamp: new Date().toLocaleString()});
 });
 
 app.use("/", userRoutes);
