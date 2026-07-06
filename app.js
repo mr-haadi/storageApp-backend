@@ -4,13 +4,13 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 
-import directoryRoutes    from "./routes/directoryRoutes.js";
-import fileRoutes         from "./routes/fileRoutes.js";
-import userRoutes         from "./routes/userRoutes.js";
-import authRoutes         from "./routes/authRoutes.js";
-import adminRoutes         from "./routes/adminRoutes.js";
+import directoryRoutes from "./routes/directoryRoutes.js";
+import fileRoutes from "./routes/fileRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
-import webhookRoutes      from "./routes/webhookRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 import checkAuth from "./middleWares/authMiddleware.js";
 import { connectDB } from "./config/db.js";
@@ -59,7 +59,10 @@ app.use("/webhook", webhookRoutes);
 app.use(express.json());
 
 app.get("/", (req, res) => {
-	return res.json({message: "Hello from mirhaadi cloud app, App is working fine in production.", timeStamp: new Date().toLocaleString()});
+  return res.json({
+    message: "Hello from mirhaadi cloud app, App is working fine in production.",
+    timeStamp: new Date().toLocaleString()
+  });
 });
 
 app.use("/", userRoutes);
@@ -71,7 +74,7 @@ app.use("/admin", checkAuth, adminRoutes);
 
 app.use((err, req, res, next) => {
   console.dir(err, { depth: null });
-   if (res.headersSent) {
+  if (res.headersSent) {
     return next(err);
   }
   return res.status(err.status || 500).json({ error: "Something went wrong! try again later." });

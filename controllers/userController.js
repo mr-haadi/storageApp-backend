@@ -59,7 +59,7 @@ export const register = async (req, res, next) => {
     } else if (err.code === 11000) {
       return res
         .status(409)
-        .json({ error: "User already exists!, Login Now" });
+        .json({ error: "User already exists!, Sign in to continue..." });
     } else {
       next(err);
     }

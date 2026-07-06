@@ -15,13 +15,13 @@ export async function sendOtpService(email) {
 
 
     const html = `
-      <div div style = "font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:20px;" >
+<div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:20px;">
   <h2 style="color:#2563eb;margin-bottom:10px;">
-    Hello Mate 👋
+    Hi there,
   </h2>
 
   <p style="font-size:15px;color:#444;">
-    Your One-Time Password (OTP) is:
+    Your verification code is:
   </p>
 
   <div
@@ -42,26 +42,26 @@ export async function sendOtpService(email) {
   </div>
 
   <p style="color:#555;">
-    This OTP is valid for <b>10 minutes</b>.
+    This code is valid for <b>10 minutes</b>.
   </p>
 
   <p style="color:#777;font-size:13px;">
-    If you didn't request this OTP, please report to contact@haadi.com
+    If you didn't request this code, you can safely ignore this email.
   </p>
 
   <br />
 
-  <p>
-    Thank You,<br />
+  <p style="color:#444;">
+    Thanks,<br />
     <b>Team Haadi</b>
   </p>
-</div >`
+</div>`;
 
 
     await resend.emails.send({
-      from: 'Storage App <contact@mirhaadi.in>',
+      from: 'Haadi Cloud App <no-reply@mirhaadi.in>',
       to: email,
-      subject: 'Your OTP for Authentication',
+      subject: 'Your one-time verification code',
       html
     });
     return { success: true, message: "OTP sent successfully" }

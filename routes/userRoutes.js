@@ -6,7 +6,7 @@ import { rateLimiter, throttle } from "../middleWares/limiterMiddleware.js";
 
 const router = express.Router();
 
-router.post("/user/register", rateLimiter(10 * 60 * 1000, 3), register);
+router.post("/user/register", rateLimiter(15 * 60 * 1000, 5), register);
 
 router.post("/user/login", rateLimiter(5 * 60 * 1000, 12),
     throttle({ waitTime: 2000 }), login);
