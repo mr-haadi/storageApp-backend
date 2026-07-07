@@ -60,7 +60,7 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   return res.json({
-    message: "Hello from mirhaadi cloud app, App is working fine in production.",
+    message: "Hello from haadi cloud app, App is working fine in production environment.",
     timeStamp: new Date().toLocaleString()
   });
 });
