@@ -16,7 +16,7 @@ export async function getTargetUser(req, res) {
     const isSelf = req.user._id.toString() === target._id.toString();
     if (!isSelf && !canManageUser(req.user.role, target.role)) {
         res.status(403).json({
-            error: "You cannot manage this user",
+            error: "You don't have permission to perform this action",
         });
         return null;
     }
