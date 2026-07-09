@@ -12,7 +12,7 @@ router.post("/users/:userId/logout", checkAuth, requireRole("Manager"), logoutBy
 
 router.patch("/users/:userId/soft", checkAuth, requireRole("Admin"), softDelete);
 
-router.delete("/users/:userId/hard", checkAuth, requireRole("Admin"), hardDelete);
+router.delete("/users/:userId/hard", checkAuth, requireRole("SuperAdmin"), hardDelete);
 
 router.patch("/users/:userId/recover", checkAuth, requireRole("Admin"), recoverUserByAdmin);
 
