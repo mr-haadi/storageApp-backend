@@ -1,0 +1,50 @@
+name: Deploy StorageApp Backend
+
+on:
+    push: 
+        branches:
+            - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SSH_HOST: 13.205.191.36
+      SSH_USER: ubuntu
+      REMOTE_APP_DIR: /home/ubuntu/storageApp-backend
+      PM2_APP_NAME: storageApp
+
+    steps:
+      # 1. Setup SSH key and known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Add server host key so SSH does not ask for confirmation
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      # 2. Deploy to remote server
+      - name: Deploy backend on EC2
+        run: |
+          ssh "${SSH_USER}@${SSH_HOST}" 'bash -s' << 'EOF'
+            set -e
+
+            echo "Starting deployment for production..."
+
+            echo "Switching to project directory..."
+            cd /home/ubuntu/storageApp-backend
+
+            echo "Getting latest code..."
+            git pull
+
+            echo "Installing dependencies..."
+            npm ci --no-audit --no-fund
+
+            echo "Restarting backend..."
+            pm2 reload storageApp
+
+            echo "Backend Deployed Successfully..."
+          EOF
