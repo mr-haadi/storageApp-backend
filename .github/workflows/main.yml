@@ -6,14 +6,14 @@ on:
             - main
 
 jobs:
-  deploy:
+  deploy-backend:
     runs-on: ubuntu-latest
 
     env:
-      SSH_HOST: 13.205.191.36
-      SSH_USER: ubuntu
-      REMOTE_APP_DIR: /home/ubuntu/storageApp-backend
-      PM2_APP_NAME: storageApp
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      REMOTE_APP_DIR: ${{ vars.REMOTE_APP_DIR }}
+      PM2_APP_NAME: ${{ vars.PM2_APP_NAME }}
 
     steps:
       # 1. Setup SSH key and known_hosts
@@ -35,7 +35,7 @@ jobs:
             echo "Starting deployment for production..."
 
             echo "Switching to project directory..."
-            cd /home/ubuntu/storageApp-backend
+            cd "$REMOTE_APP_DIR"
 
             echo "Getting latest code..."
             git pull
