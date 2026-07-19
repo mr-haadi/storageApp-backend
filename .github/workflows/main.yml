@@ -13,7 +13,6 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_USER: ${{ vars.SSH_USER }}
       REMOTE_APP_DIR: ${{ vars.REMOTE_APP_DIR }}
-      PM2_APP_NAME: ${{ vars.PM2_APP_NAME }}
 
     steps:
       # 1. Setup SSH key and known_hosts
